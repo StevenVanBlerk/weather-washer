@@ -2,6 +2,12 @@ export const formatWeatherData = (rawWeatherData) => {
   const { hourly } = rawWeatherData
   const { time, precipitation } = hourly
 
+  //current time with hour rounded down
+  const dateNow = new Date()
+  dateNow.setMinutes(0)
+  dateNow.setSeconds(0)
+  dateNow.setMilliseconds(0)
+
   let dailyForecast = {}
   const nearestDayOfRain = {
     date: null,
@@ -11,32 +17,35 @@ export const formatWeatherData = (rawWeatherData) => {
   }
 
   for (let i = 0; i < time.length; i++) {
-    // formatting dates
-    const date = new Date(time[i])
-    const currentDate = `${date.getFullYear()}-${
-      date.getMonth() + 1
-    }-${date.getDate()}`
-    const currentHour = date.getHours()
-    const currentRain = precipitation[i]
+    const date_i = new Date(time[i])
+    const dateString_i = `${date_i.getFullYear()}-${
+      date_i.getMonth() + 1
+    }-${date_i.getDate()}`
+    const hour_i = date_i.getHours()
+    const rain_i = precipitation[i]
 
-    if (!dailyForecast[currentDate]) {
-      dailyForecast[currentDate] = {
-        hourlyForecast: [{ hour: currentHour, rain: `${currentRain}mm` }],
-      }
-    } else {
-      dailyForecast[currentDate] = {
-        hourlyForecast: [
-          ...dailyForecast[currentDate].hourlyForecast,
-          { hour: currentHour, rain: `${currentRain}mm` },
-        ],
-      }
+    // skipping if date time is in the past
+    if (date_i < dateNow) {
+      continue
     }
 
-    // finding soonest day of rain
-    if (!nearestDayOfRain.rain && currentRain != 0) {
-      const dateNow = new Date()
+    if (date_i.getDate() === dateNow.getDate())
+      if (!dailyForecast[dateString_i]) {
+        dailyForecast[dateString_i] = {
+          hourlyForecast: [{ hour: hour_i, rain: `${rain_i}mm` }],
+        }
+      } else {
+        dailyForecast[dateString_i] = {
+          hourlyForecast: [
+            ...dailyForecast[dateString_i].hourlyForecast,
+            { hour: hour_i, rain: `${rain_i}mm` },
+          ],
+        }
+      }
 
-      const msDiff = date - dateNow
+    // finding soonest day of rain
+    if (!nearestDayOfRain.rain && rain_i != 0) {
+      const msDiff = date_i - dateNow
       const secondsDiff = Math.floor(msDiff / 1000)
       const minutesDiff = Math.floor(secondsDiff / 60)
       const hoursDiff = Math.floor(minutesDiff / 60)
@@ -47,14 +56,14 @@ export const formatWeatherData = (rawWeatherData) => {
       const minutesMM = minutesDiff - hoursDiff * 60
 
       nearestDayOfRain = {
-        date: currentDate,
-        nearestHourOfRain: currentHour,
-        rain: currentRain,
+        date: dateString_i,
+        nearestHourOfRain: hour_i,
+        rain: rain_i,
         daysDD,
         hoursHH,
         minutesMM,
         timeTillRain: `${daysDD}d ${hoursHH}h ${minutesMM}m`,
-        ...dailyForecast[currentDate],
+        ...dailyForecast[dateString_i],
       }
     }
   }

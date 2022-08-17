@@ -41,6 +41,13 @@ export default function Home() {
         <h3>Raining in: </h3>
         <h1>{timeTillRain}</h1>
       </div>
+      <div className={styles.gridItem} style={{ textAlign: 'left' }}>
+        <h1>TO-DO:</h1>
+        <ul>
+          <li>Nearest day of Sun</li>
+          <li>display raw data day by hour</li>
+        </ul>
+      </div>
       <pre
         style={{
           textAlign: 'left',
